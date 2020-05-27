@@ -15,14 +15,15 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
+[image0]: ./examples/Sample_traffic_signs.JPG "Visualization"
 [image1]: ./examples/Visualization.JPG "Visualization"
 [image2]: ./examples/Grayscale.jpg "Grayscaling"
 [image3]: ./examples/Normalized.JPG "Normalized"
-[image4]: ./examples/10.png "Traffic Sign 1"
-[image5]: ./examples/11.JPG "Traffic Sign 2"
-[image6]: ./examples/17.png "Traffic Sign 3"
-[image7]: ./examples/3.png "Traffic Sign 4"
-[image8]: ./examples/40.JPG "Traffic Sign 5"
+[image4]: ./examples/Zeichen_13.png "Traffic Sign 1"
+[image5]: ./examples/Zeichen_14.png "Traffic Sign 2"
+[image6]: ./examples/Zeichen_17.png "Traffic Sign 3"
+[image7]: ./examples/Zeichen_3.png "Traffic Sign 4"
+[image8]: ./examples/Zeichen_34.png "Traffic Sign 5"
 
 
 ---
@@ -42,7 +43,11 @@ signs data set:
 
 #### 1. Include an exploratory visualization of the dataset.
 
-Here is an exploratory visualization of the data set. It is a bar chart showing how the data are exist in each lable.
+Here is an exploratory visualization of the data set.
+
+![alt text][image0]
+
+It is a bar chart showing how the data are exist in each lable.
 
 ![alt text][image1]
 
@@ -53,15 +58,15 @@ As a first step, I decided to convert the images to grayscale because the color 
 Here is an example of a traffic sign image before and after grayscaling.
 
 ```
-### converting to grayscale
+### Converting to grayscale, etc.
 X_train_rgb = X_train
 X_train_gry = np.sum(X_train/3, axis=3, keepdims=True)
 
+X_valid_rgb = X_valid
+X_valid_gry = np.sum(X_valid/3, axis=3, keepdims=True)
+
 X_test_rgb = X_test
 X_test_gry = np.sum(X_test/3, axis=3, keepdims=True)
-
-print('RGB shape:', X_train_rgb.shape)
-print('Grayscale shape:', X_train_gry.shape)
 ```
 
 ![alt text][image2]
@@ -70,10 +75,13 @@ As a last step, I normalized the image data because it can make sure our data lo
 
 Here is an example of an original image and an augmented image:
 ```
-## Normalize the train and test datasets to (-1, 1)
+## Normalize the train and test datasets
+def preprocess(img):
+    return (img - 128.) / 128.
 
-X_train_normalized = (X_train_gry - 128)/128 
-X_test_normalized = (X_test_gry - 128)/128
+X_train_normalized = np.array([preprocess(img) for img in X_train_gry])
+X_valid_normalized = np.array([preprocess(img) for img in X_valid_gry])
+X_test_normalized = np.array([preprocess(img) for img in X_test_gry])
 ```
 
 ![alt text][image3]
@@ -89,12 +97,16 @@ My final model consisted of the following layers:
 | Input         		| 32x32x1 Gray image   							| 
 | Convolution 5x5     	| 1x1 stride, same padding, outputs 28x28x6 	|
 | RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 14x14x6  				|
-| Convolution 3x3	    | 1x1 stride, same padding, outputs 10x10x6		|
+| Convolution 3x3		| 2x2 stride, outputs 14x14x10  				|
 | RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 5x5x16  					|
-| Flatten		      	|         										|
+| Convolution 3x3		| 1x1 stride, outputs 8x8x16  					|
+| RELU					|												|
+| Max pooling	      	| 2x2 stride,  outputs 4x4x16  					|
+| Flatten		      	| Size: 256										|
 | Fully connected		| Size: 120										|
+| RELU					|												|
+| Dropout				| 50%											|
+| Fully connected		| Size: 100										|
 | RELU					|												|
 | Fully connected		| Size: 84										|
 | RELU					|												|
@@ -103,19 +115,19 @@ My final model consisted of the following layers:
 
 #### 3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
 
-To train the model I used 50 epochs, a batch size of 128 and a learning rate of 0.0005.
+To train the model I used 50 epochs, a batch size of 128 and a learning rate of 0.0009.
 Based on some trail, I increased the number of epochs and decreased the learning rate from the initial value.
 
 For my training optimizers I used softmax_cross_entropy_with_logits to get a tensor representing the mean loss value to which I applied tf.reduce_mean to compute the mean of elements across dimensions of the result. Finally I applied minimize to the AdamOptimizer of the previous result.
 
-My final model Validation Accuracy was 0.897
+My final model Validation Accuracy was 0.956
 
 #### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
 My final model results were:
-* training set accuracy of 0.993
-* validation set accuracy of 0.897 
-* test set accuracy of 0.881
+* training set accuracy of 0.992
+* validation set accuracy of 0.956 
+* test set accuracy of 0.936
 
 
 
@@ -135,14 +147,14 @@ Here are the results of the prediction:
 
 | Image			       	        		        | Prediction									| 
 |:---------------------------------------------:|:---------------------------------------------:| 
-| No passing for vehicles over 3.5 metric tons	| No passing for vehicles over 3.5 metric tons	| 
-| Right-of-way at the next intersection			| Right-of-way at the next intersection			|
+| Yield											| Yield											|
+| Stop											| Road work										|
 | No entry										| No entry										|
-| Speed limit (60km/h)					   		| Speed limit (50km/h) 							|
-| Roundabout mandatory							| Yield 										|
+| Speed limit (60km/h)					   		| Priority road									|
+| Turn left ahead								| Turn left ahead 								|
 
-
-The model was able to correctly guess 4 of the 5 traffic signs, which gives an accuracy of 80%. 
+The model was able to correctly guess 3 of the 5 traffic signs, which gives an accuracy of 60%. 
+The new image I choosed were very clear and simple whithout any noise and background. I just applied the grayscale and normalized as prepreocessing. I thought it would detect 100% but it did not. Maybe it was because of the overfitting. When I played with serveral hyperparameter values, the test results with new image was better even with the validation result was less good. 
 
 
 #### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
@@ -151,46 +163,46 @@ The model was able to correctly guess 4 of the 5 traffic signs, which gives an a
 The top five soft max probabilities were;
 
 ```
-10.png:
-No passing for vehicles over 3.5 metric tons: 100.00%
-Dangerous curve to the right: 0.00%
-Roundabout mandatory: 0.00%
-End of no passing by vehicles over 3.5 metric tons: 0.00%
-Slippery road: 0.00%
+Zeichen_13.png:
+Yield: 100.00%
+No vehicles: 0.00%
+Ahead only: 0.00%
+Priority road: 0.00%
+Speed limit (60km/h): 0.00%
 
-11.JPG:
-Right-of-way at the next intersection: 100.00%
-Beware of ice/snow: 0.00%
-Dangerous curve to the right: 0.00%
-Children crossing: 0.00%
-Slippery road: 0.00%
+Zeichen_14.png:
+Road work: 99.96%
+Keep right: 0.02%
+Stop: 0.01%
+Yield: 0.00%
+Speed limit (60km/h): 0.00%
 
-17.png:
+Zeichen_17.png:
 No entry: 100.00%
+No passing: 0.00%
+No passing for vehicles over 3.5 metric tons: 0.00%
+Priority road: 0.00%
 Speed limit (20km/h): 0.00%
-Speed limit (30km/h): 0.00%
-Speed limit (50km/h): 0.00%
-Speed limit (60km/h): 0.00%
 
-3.png:
-Speed limit (50km/h): 99.88%
-Speed limit (30km/h): 0.12%
-Speed limit (60km/h): 0.00%
-Yield: 0.00%
-Speed limit (80km/h): 0.00%
+Zeichen_3.png:
+Priority road: 94.46%
+Bicycles crossing: 2.20%
+Keep right: 1.72%
+Beware of ice/snow: 1.58%
+Slippery road: 0.04%
 
-40.JPG:
-Roundabout mandatory: 99.94%
-Right-of-way at the next intersection: 0.06%
-Speed limit (100km/h): 0.00%
-End of no passing: 0.00%
-Yield: 0.00%
+Zeichen_34.png:
+Keep right: 53.90%
+Turn left ahead: 40.15%
+Yield: 5.94%
+Stop: 0.00%
+No vehicles: 0.00%
 
 ```
 
 
 #### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
 
-From the search, the accuray will be better if I use more preprocessing of dataset, such as transaltion, scaling, warp, etc.
-I did not use the dropout. This will also increase the accuracy more by avoiding the overfitting.
+From the research, the accuray will be better if I use more preprocessing of dataset, such as transaltion, scaling, warp, etc.
+I used just 1 dropout and 1 maxpooling. More drop and maxpooling in every layer will increase the accuracy by avoiding the overfitting.
 
