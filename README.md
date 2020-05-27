@@ -115,7 +115,7 @@ My final model consisted of the following layers:
 
 #### 3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
 
-To train the model I used 50 epochs, a batch size of 128 and a learning rate of 0.0009.
+To train the model I used 60 epochs, a batch size of 128 and a learning rate of 0.0009.
 Based on some trail, I increased the number of epochs and decreased the learning rate from the initial value.
 
 For my training optimizers I used softmax_cross_entropy_with_logits to get a tensor representing the mean loss value to which I applied tf.reduce_mean to compute the mean of elements across dimensions of the result. Finally I applied minimize to the AdamOptimizer of the previous result.
